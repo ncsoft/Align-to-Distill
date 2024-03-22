@@ -29,13 +29,13 @@ class KDLabelSmoothedCrossEntropyCriterionConfig(FairseqDataclass):
     cross_kd: bool = field(
         default=True, metadata={"help": "decoder attention distillation"}
     )
-    rambda: float = field(
+    beta: float = field(
         default=1,
         metadata={"help": "attn_loss weight"},
     )
     decay: float = field(
         default=0.9,
-        metadata={"help": "decay value for rambda"}
+        metadata={"help": "decay value for beta"}
     )
     label_smoothing: float = field(
         default=0.0,
@@ -100,7 +100,7 @@ class KDLabelSmoothedCrossEntropyCriterion(FairseqCriterion):
         student_temp,
         teacher_temp,
         alpha,
-        rambda,
+        beta,
         decay,
         decoder_kd,
         self_kd,
@@ -117,7 +117,7 @@ class KDLabelSmoothedCrossEntropyCriterion(FairseqCriterion):
         self.student_temp = student_temp
         self.teacher_temp = teacher_temp
         self.alpha = alpha
-        self.rambda = rambda
+        self.beta = beta
         self.decay = decay
         self.decoder_kd = decoder_kd
         self.self_kd = self_kd
@@ -255,15 +255,15 @@ class KDLabelSmoothedCrossEntropyCriterion(FairseqCriterion):
         decoder_cross_attn_loss = None
 
         if attn is not None and teacher_attn is not None and epoch is not None:
-            attn_loss =F.kl_div(F.log_softmax(rearrange(attn, 'B C H W -> B C (H W)'), dim=-1), F.log_softmax(rearrange(teacher_attn, 'B C H W -> B C (H W)'), dim=-1), reduction='sum', log_target=True) * (self.decay ** (epoch-1)) * self.rambda
+            attn_loss =F.kl_div(F.log_softmax(rearrange(attn, 'B C H W -> B C (H W)'), dim=-1), F.log_softmax(rearrange(teacher_attn, 'B C H W -> B C (H W)'), dim=-1), reduction='sum', log_target=True) * (self.decay ** (epoch-1)) * self.beta
             if self.decoder_kd:
                 if self.self_kd and self.cross_kd:
-                    decoder_self_attn_loss = F.kl_div(F.log_softmax(rearrange(decoder_self_attn, 'B C H W -> B C (H W)'), dim=-1), F.log_softmax(rearrange(teacher_decoder_self_attn, 'B C H W -> B C (H W)'), dim=-1), reduction='sum', log_target=True) * (self.decay ** (epoch-1)) / 2 * self.rambda
-                    decoder_cross_attn_loss = F.kl_div(F.log_softmax(rearrange(decoder_cross_attn, 'B C H W -> B C (H W)'), dim=-1), F.log_softmax(rearrange(teacher_decoder_cross_attn, 'B C H W -> B C (H W)'), dim=-1), reduction='sum', log_target=True) * (self.decay ** (epoch-1)) / 2 * self.rambda
+                    decoder_self_attn_loss = F.kl_div(F.log_softmax(rearrange(decoder_self_attn, 'B C H W -> B C (H W)'), dim=-1), F.log_softmax(rearrange(teacher_decoder_self_attn, 'B C H W -> B C (H W)'), dim=-1), reduction='sum', log_target=True) * (self.decay ** (epoch-1)) / 2 * self.beta
+                    decoder_cross_attn_loss = F.kl_div(F.log_softmax(rearrange(decoder_cross_attn, 'B C H W -> B C (H W)'), dim=-1), F.log_softmax(rearrange(teacher_decoder_cross_attn, 'B C H W -> B C (H W)'), dim=-1), reduction='sum', log_target=True) * (self.decay ** (epoch-1)) / 2 * self.beta
                 elif self.self_kd:
-                    decoder_self_attn_loss = F.kl_div(F.log_softmax(rearrange(decoder_self_attn, 'B C H W -> B C (H W)'), dim=-1), F.log_softmax(rearrange(teacher_decoder_self_attn, 'B C H W -> B C (H W)'), dim=-1), reduction='sum', log_target=True) * (self.decay ** (epoch-1)) * self.rambda
+                    decoder_self_attn_loss = F.kl_div(F.log_softmax(rearrange(decoder_self_attn, 'B C H W -> B C (H W)'), dim=-1), F.log_softmax(rearrange(teacher_decoder_self_attn, 'B C H W -> B C (H W)'), dim=-1), reduction='sum', log_target=True) * (self.decay ** (epoch-1)) * self.beta
                 elif self.cross_kd:
-                    decoder_cross_attn_loss = F.kl_div(F.log_softmax(rearrange(decoder_cross_attn, 'B C H W -> B C (H W)'), dim=-1), F.log_softmax(rearrange(teacher_decoder_cross_attn, 'B C H W -> B C (H W)'), dim=-1), reduction='sum', log_target=True) * (self.decay ** (epoch-1)) * self.rambda
+                    decoder_cross_attn_loss = F.kl_div(F.log_softmax(rearrange(decoder_cross_attn, 'B C H W -> B C (H W)'), dim=-1), F.log_softmax(rearrange(teacher_decoder_cross_attn, 'B C H W -> B C (H W)'), dim=-1), reduction='sum', log_target=True) * (self.decay ** (epoch-1)) * self.beta
 
         if attn_loss:
             extra['attn_loss'] = attn_loss.sum()

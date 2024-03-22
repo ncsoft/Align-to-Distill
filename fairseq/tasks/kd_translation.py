@@ -37,7 +37,10 @@ class KDTranslationConfig(TranslationConfig):
     teacher_checkpoint_path: str = field(
         default="./", metadata={"help": "teacher checkpoint path when performing distillation"}
     )
-    rambda: float = field(
+    alpha: float = field(
+        default="0.5", metadata={"help": "kd_loss weight"}
+    )
+    beta: float = field(
         default="1", metadata={"help": "attn_loss weight"}
     )
     alignment_module : bool = field(
@@ -59,7 +62,8 @@ class KDTranslationTask(TranslationTask):
     def __init__(self, cfg: KDTranslationConfig, src_dict, tgt_dict):
         super().__init__(cfg, src_dict, tgt_dict)
         self.src_lang_ids = [i for i in range(len(src_dict)) if src_dict[i].startswith("__src__")]
-        self.rambda = cfg.rambda
+        self.alpha = cfg.alpha
+        self.beta = cfg.beta
         self.alignment_module = cfg.alignment_module
         self.decoder_kd = cfg.decoder_kd
         self.self_kd = cfg.self_kd

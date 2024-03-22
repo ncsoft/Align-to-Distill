@@ -61,7 +61,7 @@ The '--teacher-ckpt-path' argument is used to specify the path to the trained te
 
 Adjustable arguments for experiments:
 - add '--alpha' (default=0.5) : This argument controls the weight between the cross-entropy loss and the response-based distillation loss.
-- add '--rambda' (default=1) : This argument controls the weight between the response-based loss and the attention distillation loss.
+- add '--beta' (default=1) : This argument controls the weight between the response-based loss and the attention distillation loss.
 - add '--decay' (default=0.9) : This argument sets the decay rate for the attention distillation loss.
 
 Two scripts are provided for running the training processes:
