@@ -5,6 +5,7 @@
 !train_student.sh
 !train_teacher.sh
 !test.sh
+!examples/translation/prepare-iwslt14.sh
 # JetBrains PyCharm IDE and VS CODE
 .idea/
 .vscode/
@@ -126,9 +127,9 @@ ENV/
 data-bin/
 data-bin-old/
 
-# reranking
-/examples/reranking/rerank_data
-/examples/
+# # reranking
+# /examples/reranking/rerank_data
+# /examples/
 # Cython-generated C++ source files
 /fairseq/data/data_utils_fast.cpp
 /fairseq/data/token_block_utils_fast.cpp
